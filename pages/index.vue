@@ -161,7 +161,7 @@
     </ClientOnly>
 
     <!-- Fallback UI to debug production -->
-    <div v-if="isClientInitialized && !calendarLoading && (!calendarData || !calendarData.records || calendarData.records.length === 0)" class="mt-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg">
+    <div v-if="isClientInitialized && !calendarLoading && (!calendarData || !calendarData.calendar || calendarData.calendar.length === 0)" class="mt-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg">
       <p class="text-red-600 dark:text-red-400 text-sm font-medium flex items-center justify-center">
         <ExclamationCircleIcon class="w-5 h-5 mr-2" />
         Calendar data is empty (production check). If you are an employee, you might have no records for this month.
