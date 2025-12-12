@@ -1,0 +1,33 @@
+{
+    "common": {
+        "welcome": "مرحباً",
+        "login": "تسجيل الدخول",
+        "register": "تسجيل شركة",
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "submit": "إرسال",
+        "cancel": "إلغاء",
+        "save": "حفظ",
+        "loading": "جاري التحميل...",
+        "error": "خطأ",
+        "success": "نجاح"
+    },
+    "nav": {
+        "dashboard": "لوحة التحكم",
+        "attendance": "الحضور والانصراف",
+        "requests": "الطلبات",
+        "penalties": "الجزاءات",
+        "payroll": "الرواتب",
+        "experience": "تجربة الموظف",
+        "employees": "الموظفين",
+        "settings": "الإعدادات",
+        "logout": "تسجيل خروج"
+    },
+    "auth": {
+        "companyName": "اسم الشركة",
+        "adminName": "اسم المسؤول",
+        "adminEmail": "بريد المسؤول",
+        "loginTitle": "سجل دخولك لحسابك",
+        "registerTitle": "سجل شركتك"
+    }
+}

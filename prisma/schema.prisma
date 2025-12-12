@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPLOYEE
+  MANAGER
+  HR
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  EARLY_LEAVE
+  ABSENT
+  OVERTIME
+  LEAVE
+  HOLIDAY
+}
+
+enum RequestType {
+  CASUAL_LEAVE
+  ANNUAL_LEAVE
+  SICK_LEAVE
+  MARRIAGE_LEAVE
+  EXTRA_WORKING_DAY
+  OVERTIME_HOURS
+  EXTERNAL_WORK
+  LATE_ARRIVAL
+  EARLY_LEAVE
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Company {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(EMPLOYEE)
+  companyId Int
+  company   Company  @relation(fields: [companyId], references: [id])
+  
+  // Relations
+  attendance Attendance[]
+  requests   Request[]
+  penalties  Penalty[]
+  payrolls   Payroll[]
+  kudosSent  Kudos[] @relation("Sender")
+  kudosReceived Kudos[] @relation("Receiver")
+  surveys    SurveyResponse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  date      DateTime @db.Date // Store just the date
+  checkIn   DateTime?
+  checkOut  DateTime?
+  location  String?  // Home, Office, Client Site
+  status    AttendanceStatus[] // Array of statuses (Late, Overtime, etc.)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model Request {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  type        RequestType
+  status      RequestStatus @default(PENDING)
+  startDate   DateTime
+  endDate     DateTime?
+  reason      String?
+  managerComment String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Penalty {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Float
+  reason      String
+  date        DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payroll {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  month       DateTime @db.Date // First day of the month
+  basicSalary Float
+  additions   Float    @default(0)
+  deductions  Float    @default(0)
+  netSalary   Float
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, month])
+}
+
+model ExperiencePost {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  type      String   // ANNOUNCEMENT, KUDOS, SURVEY
+  companyId Int
+  createdAt DateTime @default(now())
+}
+
+model Kudos {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  sender      User     @relation("Sender", fields: [senderId], references: [id])
+  receiverId  Int
+  receiver    User     @relation("Receiver", fields: [receiverId], references: [id])
+  message     String
+  badge       String   @default("star")
+  createdAt   DateTime @default(now())
+}
+
+model Survey {
+  id        Int      @id @default(autoincrement())
+  title     String
+  questions Json
+  responses SurveyResponse[]
+  createdAt DateTime @default(now())
+}
+
+model SurveyResponse {
+  id        Int      @id @default(autoincrement())
+  surveyId  Int
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  answers   Json
+  createdAt DateTime @default(now())
+}
