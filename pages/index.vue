@@ -145,12 +145,28 @@
     </div>
 
     <!-- Calendar Section -->
-    <ComprehensiveCalendar
-      v-model="currentDate"
-      :attendance-data="calendarData"
-      :loading="calendarLoading"
-      @day-click="handleDayClick"
-    />
+    <!-- Calendar Section -->
+    <ClientOnly>
+      <ComprehensiveCalendar
+        v-model="currentDate"
+        :attendance-data="calendarData"
+        :loading="calendarLoading"
+        @day-click="handleDayClick"
+      />
+      <template #fallback>
+        <div class="h-[400px] flex items-center justify-center bg-gray-50 dark:bg-zinc-900 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+           <p class="text-gray-500">Loading Calendar Component...</p>
+        </div>
+      </template>
+    </ClientOnly>
+
+    <!-- Fallback UI to debug production -->
+    <div v-if="isClientInitialized && !calendarLoading && (!calendarData || !calendarData.records || calendarData.records.length === 0)" class="mt-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-lg">
+      <p class="text-red-600 dark:text-red-400 text-sm font-medium flex items-center justify-center">
+        <ExclamationCircleIcon class="w-5 h-5 mr-2" />
+        Calendar data is empty (production check). If you are an employee, you might have no records for this month.
+      </p>
+    </div>
 
     <!-- Floating Action Button -->
     <button
@@ -219,7 +235,6 @@ import {
   PlusIcon
 } from '@heroicons/vue/24/outline'
 
-import ComprehensiveCalendar from '~/components/calendar/ComprehensiveCalendar.vue'
 import DayDetailsModal from '~/components/attendance/DayDetailsModal.vue'
 
 definePageMeta({
@@ -289,11 +304,24 @@ const openRequestFromDay = (date: string) => {
 const currentDate = ref(new Date())
 const calendarData = ref(null)
 const calendarLoading = ref(false)
+const isClientInitialized = ref(false)
+
+const ComprehensiveCalendar = defineAsyncComponent(() =>
+  import('~/components/calendar/ComprehensiveCalendar.vue')
+)
+
+// ... existing code ...
 
 const loadCalendar = async () => {
-  calendarLoading.value = true
-  calendarData.value = await attendanceStore.fetchMonthAttendance(currentDate.value)
-  calendarLoading.value = false
+    calendarLoading.value = true
+    try {
+        const res: any = await attendanceStore.fetchMonthAttendance(currentDate.value)
+        calendarData.value = res
+    } catch (err) {
+        console.error('Failed to load calendar data on production', err)
+    } finally {
+        calendarLoading.value = false
+    }
 }
 
 watch(currentDate, () => {
@@ -302,6 +330,8 @@ watch(currentDate, () => {
 
 // Load today's attendance and calendar on mount
 onMounted(async () => {
+  isClientInitialized.value = true
+  console.log("Calendar page mounted on client");
   await Promise.all([
     attendanceStore.fetchTodayAttendance(),
     loadCalendar()
