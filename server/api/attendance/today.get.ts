@@ -1,31 +1,37 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '../../utils/prisma'
 import { getUserFromEvent } from '../../utils/jwt'
 
-const prisma = new PrismaClient()
-
 export default defineEventHandler(async (event) => {
-    const user = getUserFromEvent(event)
-    if (!user) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
+    try {
+        const user = getUserFromEvent(event)
+        if (!user) throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
 
-    const attendance = await prisma.attendance.findUnique({
-        where: {
-            userId_date: {
-                userId: user.id,
-                date: today
+        const attendance = await prisma.attendance.findUnique({
+            where: {
+                userId_date: {
+                    userId: user.id,
+                    date: today
+                }
+            }
+        })
+
+        if (!attendance) {
+            return {
+                checkIn: null,
+                checkOut: null,
+                location: null
             }
         }
-    })
 
-    if (!attendance) {
-        return {
-            checkIn: null,
-            checkOut: null,
-            location: null
-        }
+        return attendance
+    } catch (error: any) {
+        console.error('[Today Attendance API Error]:', error)
+        throw createError({
+            statusCode: error.statusCode || 500,
+            statusMessage: 'Internal Server Error: ' + (error.message || error)
+        })
     }
-
-    return attendance
 })
