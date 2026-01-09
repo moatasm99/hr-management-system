@@ -3,5 +3,10 @@
     <div class="max-w-md w-full space-y-8">
       <slot />
     </div>
+    <SpeedInsights />
   </div>
 </template>
+
+<script setup lang="ts">
+import { SpeedInsights } from '@vercel/speed-insights/vue'
+</script>
